@@ -1,0 +1,27 @@
+# Walkthrough - Vote Verification & Interactive Landing Page
+
+I have implemented a complete end-to-end vote verification flow and enhanced the landing page to be more interactive and functional.
+
+## Changes Made
+
+### 1. Vote Verification System
+- **Hash Generation**: When a user casts a ballot in [ElectionVotingInterface](file:///d:/E-Voting%20System/src/pages/ElectionVotingInterface.tsx#6-166), a unique 64-character SHA-256 equivalent hash is generated.
+- **Data Persistence**: The hash and vote details (candidate, party, timestamp) are saved to `localStorage`.
+- **Verification Page**: A new [VoteVerification](file:///d:/E-Voting%20System/src/pages/VoteVerification.tsx#5-165) page allows users to enter their hash to verify their vote on the "ledger".
+
+### 2. Landing Page Interactivity
+- Linked the feature cards to actual application routes:
+  - **End-to-End Encryption** -> `/elections` (Voting Portal)
+  - **Tamper-Proof Audit** -> `/verify` (Vote Verification)
+  - **100% Accessibility** -> `/dashboard` (Voter Dashboard)
+
+## Verification Results
+
+### Vote Verification Flow
+1. Navigate to the Voting Portal and cast a vote.
+2. Observe the generated hash on the confirmation screen.
+3. Click "Verify Receipt" to go to the verification page.
+4. The hash is matched against the local "ledger" and the vote details are displayed.
+
+### Landing Page Navigation
+- Clicking each feature card correctly navigates to its intended destination, providing a seamless user experience.

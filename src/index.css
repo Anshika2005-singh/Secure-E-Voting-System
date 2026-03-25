@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-brand-primary: #81A6C6;
+  --color-brand-secondary: #AACDDC;
+  --color-brand-bg: #F3E3D0;
+  --color-brand-surface: #D2C4B4;
+  --color-brand-text: #1a2633;
+  --color-brand-success: #638a7d; /* Muted success derived from palette vibe */
+  --color-brand-danger: #a67b7b; /* Muted danger derived from palette vibe */
+  
+  --background-image-brand-gradient: linear-gradient(135deg, #81A6C6, #AACDDC);
+  --background-image-glass-gradient: linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-spin-slow: spin-slow 8s linear infinite;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text selection:bg-brand-primary/20;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(129, 166, 198, 0.15), transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(170, 205, 220, 0.15), transparent 40%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-md border border-brand-surface/30 rounded-2xl shadow-sm transition-all duration-300;
+  }
+  
+  .glass-card-hover {
+    @apply hover:bg-white/60 hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-md;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-brand-primary rounded-xl font-semibold text-white shadow-sm 
+           hover:bg-[#6e94b5] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 
+           disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-brand-surface/20 border border-brand-surface/40 rounded-xl font-semibold text-brand-text
+           hover:bg-brand-surface/30 hover:border-brand-surface transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+
+  .text-gradient {
+    @apply bg-brand-primary bg-clip-text text-transparent;
+  }
+
+  .input-primary {
+    @apply w-full px-4 py-3 bg-white/30 border border-brand-surface/50 rounded-xl text-brand-text placeholder:text-[#50667a]
+           focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 transition-all;
+  }
+}

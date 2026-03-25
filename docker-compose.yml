@@ -1,0 +1,27 @@
+services:
+  blockchain:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: npx hardhat node
+    ports:
+      - "8545:8545"
+
+  backend:
+    build:
+      context: .
+      target: backend
+    ports:
+      - "3001:3001"
+    depends_on:
+      - blockchain
+
+  frontend:
+    build:
+      context: .
+      target: production
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
