@@ -78,6 +78,7 @@ export const VoterDashboard = () => {
         setVoterName(result.data.full_name);
         localStorage.setItem('voter_verified', 'true');
         localStorage.setItem('voter_name', result.data.full_name);
+        localStorage.setItem('voter_aadhaar', result.data.aadhaar_number);
         setIsModalOpen(false);
       } else {
         setError(result.message || 'Incorrect OTP');
@@ -91,7 +92,8 @@ export const VoterDashboard = () => {
 
   const activeElections = [
     { id: 1, title: 'National General Election 2026', type: 'Federal', endDate: 'Nov 03, 2026', status: 'Live', voters: analytics.totalVoters },
-    { id: 2, title: 'State Infrastructure Bond Proposal', type: 'Local', endDate: 'May 15, 2026', status: 'Live', voters: '4.2M' }
+    { id: 2, title: 'State Infrastructure Bond Proposal', type: 'State', endDate: 'May 15, 2026', status: 'Live', voters: '4.2M' },
+    { id: 3, title: 'Municipal Corporation Elections – Ward 42', type: 'Municipal', endDate: 'Jun 20, 2026', status: 'Live', voters: '85K' }
   ];
 
   return (
@@ -124,6 +126,22 @@ export const VoterDashboard = () => {
                   Identity Verified <CheckCircle2 size={18} className="text-brand-success" />
                 </Flex>
                 <Text variant="xs" className="font-mono text-[#50667a] uppercase tracking-widest">Aadhaar Profile: Linked</Text>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('voter_verified');
+                    localStorage.removeItem('voter_name');
+                    localStorage.removeItem('voter_aadhaar');
+                    setVerified(false);
+                    setVoterName('');
+                    setAadhaar('');
+                    setOtp('');
+                    setVerificationStep('aadhaar');
+                    setIsModalOpen(true);
+                  }}
+                  className="text-xs font-bold text-brand-primary hover:underline mt-1 text-left"
+                >
+                  Re-verify / Change Identity
+                </button>
               </Stack>
             ) : (
               <Stack gap={3}>
@@ -186,8 +204,8 @@ export const VoterDashboard = () => {
                         onChange={(e) => setAadhaar(e.target.value.replace(/\D/g, ''))}
                       />
                     </Box>
-                    <Text variant="xs" className="flex items-center gap-1 text-[#50667a]">
-                      <Info size={12} /> Enter your 12-digit UIDAI number
+                    <Text variant="xs" className="flex items-center gap-1 text-brand-primary font-medium bg-brand-primary/5 p-2 rounded-lg">
+                      <Info size={12} /> MOCK MODE: Enter any 12-digit number (e.g., 123456789012)
                     </Text>
                   </Stack>
 
@@ -216,8 +234,8 @@ export const VoterDashboard = () => {
                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       />
                     </Box>
-                    <Text variant="xs" className="text-center text-[#50667a]">
-                      OTP sent to registered mobile ending in 4209
+                    <Text variant="xs" className="text-center text-brand-primary font-medium bg-brand-primary/5 p-2 rounded-lg">
+                      MOCK MODE: Use OTP <code className="bg-brand-primary/10 px-1 rounded">123456</code> to verify
                     </Text>
                   </Stack>
 

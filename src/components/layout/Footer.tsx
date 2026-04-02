@@ -36,10 +36,15 @@ export const Footer = () => {
           <Box>
             <Heading size="xs" as="h4" className="mb-6">Quick Links</Heading>
             <Stack as="ul" gap={4}>
-              {['Home', 'Voter Dashboard', 'Active Elections', 'Audit Trail'].map((item) => (
-                <Box as="li" key={item}>
-                  <Link to="#" className="text-[#50667a] hover:text-brand-primary transition-colors duration-200 text-sm">
-                    {item}
+              {[
+                { name: 'Home', path: '/' },
+                { name: 'Voter Dashboard', path: '/dashboard' },
+                { name: 'Active Elections', path: '/elections' },
+                { name: 'Audit Trail', path: '/audit' }
+              ].map((link) => (
+                <Box as="li" key={link.name}>
+                  <Link to={link.path} className="text-[#50667a] hover:text-brand-primary transition-colors duration-200 text-sm">
+                    {link.name}
                   </Link>
                 </Box>
               ))}
@@ -49,10 +54,15 @@ export const Footer = () => {
           <Box>
             <Heading size="xs" as="h4" className="mb-6">Resources</Heading>
             <Stack as="ul" gap={4}>
-              {['Whitepaper', 'Technical Specs', 'Privacy Policy', 'Security Audit'].map((item) => (
-                <Box as="li" key={item}>
-                  <Link to="#" className="text-[#50667a] hover:text-brand-primary transition-colors duration-200 text-sm">
-                    {item}
+              {[
+                { name: 'Whitepaper', path: '/' },
+                { name: 'Technical Specs', path: '/' },
+                { name: 'Privacy Policy', path: '/' },
+                { name: 'Security Audit', path: '/verify' }
+              ].map((link) => (
+                <Box as="li" key={link.name}>
+                  <Link to={link.path} className="text-[#50667a] hover:text-brand-primary transition-colors duration-200 text-sm">
+                    {link.name}
                   </Link>
                 </Box>
               ))}

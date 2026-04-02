@@ -8,8 +8,18 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+.openzeppelin/
+*.tsbuildinfo
+
+# Build
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files

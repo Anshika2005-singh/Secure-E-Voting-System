@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, Vote, Activity, User, Menu, X } from 'lucide-react';
 import { Box, Flex, Text } from '../ui/core';
@@ -6,6 +6,25 @@ import { Box, Flex, Text } from '../ui/core';
 export const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  // Sync with localStorage for voter identity
+  useEffect(() => {
+    const checkIdentity = () => {
+      const name = localStorage.getItem('voter_name');
+      const verified = localStorage.getItem('voter_verified');
+      if (verified === 'true' && name) {
+        setDisplayName(name);
+      } else {
+        setDisplayName(null);
+      }
+    };
+
+    checkIdentity();
+    const interval = setInterval(checkIdentity, 2000); // Poll for changes
+    return () => clearInterval(interval);
+  }, []);
 
   const navLinks = [
     { name: 'Home', path: '/', icon: Vote },
@@ -13,6 +32,41 @@ export const Navbar = () => {
     { name: 'Active Elections', path: '/elections', icon: Activity },
     { name: 'Audit Trail', path: '/audit', icon: ShieldCheck },
   ];
+
+  const handleConnectWallet = () => {
+    if (walletAddress) {
+      alert(`Wallet already connected:\n${walletAddress}`);
+      return;
+    }
+    
+    const mockAddress = '0x' + Math.random().toString(16).slice(2, 6) + '...' + Math.random().toString(16).slice(2, 6);
+    if (!displayName) {
+      alert(`Connecting to Wallet: ${mockAddress}\n(Mock Connection Success)`);
+    }
+    setWalletAddress(mockAddress);
+  };
+
+  const IdentityButton = ({ isMobile = false }) => (
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        handleConnectWallet();
+      }}
+      className={`${isMobile ? 'w-full !py-3' : 'hidden sm:flex !py-2 !px-4 text-sm'} btn-primary !shadow-none flex items-center justify-center gap-2 overflow-hidden max-w-[200px]`}
+    >
+      {displayName ? (
+        <>
+          <Box className="w-2 h-2 rounded-full bg-brand-success animate-pulse shrink-0" />
+          <Text weight="bold" className="truncate">{displayName}</Text>
+        </>
+      ) : (
+        <>
+          <User size={18} className="shrink-0" />
+          <Text weight="bold" className="truncate">{walletAddress ? walletAddress : 'Connect Wallet'}</Text>
+        </>
+      )}
+    </button>
+  );
 
   return (
     <Box as="nav" className="sticky top-4 z-50 mx-4 sm:mx-8">
@@ -51,10 +105,7 @@ export const Navbar = () => {
         
         {/* Actions */}
         <Flex align="center" gap={4}>
-          <button className="hidden sm:flex btn-primary !py-2 !px-4 text-sm !shadow-none">
-            <User size={18} />
-            Connect Wallet
-          </button>
+          <IdentityButton />
           
           {/* Mobile Menu Toggle */}
           <Box 
@@ -87,10 +138,7 @@ export const Navbar = () => {
             );
           })}
           <Box as="hr" className="border-white/5 my-2" />
-          <button className="w-full btn-primary !py-3">
-            <User size={18} />
-            Connect Wallet
-          </button>
+          <IdentityButton isMobile />
         </Box>
       )}
     </Box>

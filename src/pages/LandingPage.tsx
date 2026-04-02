@@ -1,12 +1,88 @@
-import { Lock, Activity, ArrowRight, CheckCircle, Globe, ShieldCheck, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Lock, Activity, ArrowRight, CheckCircle, Globe, ShieldCheck, Zap, Clock, Users, Database, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Box, Flex, Stack, Text, Heading } from '../components/ui/core';
 
+const API_BASE = 'http://localhost:3001';
+
+interface LiveBlock {
+  txHash: string;
+  blockNumber: number;
+  election: string;
+  type: string;
+  timestamp: string;
+  status: string;
+}
+
+interface LiveStats {
+  totalBlocks: number;
+  totalTransactions: number;
+  totalVotesCast: number;
+  syncStatus: string;
+  avgBlockTime: string;
+  validatorNodes: number;
+}
+
 export const LandingPage = () => {
+  const [recentBlocks, setRecentBlocks] = useState<LiveBlock[]>([]);
+  const [stats, setStats] = useState<LiveStats | null>(null);
+  const [isLive, setIsLive] = useState(false);
+
+  // Fetch live data from backend
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      try {
+        const [txResp, statsResp] = await Promise.all([
+          fetch(`${API_BASE}/api/audit/transactions?limit=4`),
+          fetch(`${API_BASE}/api/audit/stats`),
+        ]);
+        const txData = await txResp.json();
+        const statsData = await statsResp.json();
+
+        if (txData.success && txData.data.length > 0) {
+          setRecentBlocks(txData.data);
+          setIsLive(true);
+        }
+        if (statsData.success) {
+          setStats(statsData.data);
+        }
+      } catch {
+        // Backend not running — show fallback
+        setIsLive(false);
+      }
+    };
+
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 10000); // refresh every 10s
+    return () => clearInterval(interval);
+  }, []);
+
+  const timeAgo = (ts: string) => {
+    const diff = Date.now() - new Date(ts).getTime();
+    const secs = Math.floor(diff / 1000);
+    if (secs < 60) return `${secs}s ago`;
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  const formatNum = (n: number) => n.toLocaleString();
+
+  // Fallback blocks if backend is not running
+  const fallbackBlocks = [
+    { txHash: '0xa1b2c3d4...', blockNumber: 5842090, election: 'National General Election', type: 'Encrypted Vote', timestamp: new Date(Date.now() - 180000).toISOString(), status: 'confirmed' },
+    { txHash: '0xe5f6a7b8...', blockNumber: 5842089, election: 'State Bond Proposal', type: 'Encrypted Vote', timestamp: new Date(Date.now() - 420000).toISOString(), status: 'confirmed' },
+    { txHash: '0xc9d0e1f2...', blockNumber: 5842088, election: 'Municipal Elections', type: 'Encrypted Vote', timestamp: new Date(Date.now() - 900000).toISOString(), status: 'confirmed' },
+  ];
+
+  const displayBlocks = isLive ? recentBlocks.slice(0, 4) : fallbackBlocks;
+
   return (
     <Stack gap={32} className="pb-20">
       {/* Hero Section */}
-      <Box as="section" className="relative pt-20 overflow-hidden">
+      <Box as="section" id="hero" className="relative pt-20 overflow-hidden">
         {/* Background Decorative Shapes */}
         <Box className="absolute top-0 -left-20 w-96 h-96 bg-brand-primary/10 blur-[100px] rounded-full animate-pulse" />
         <Box className="absolute bottom-40 -right-20 w-80 h-80 bg-brand-secondary/10 blur-[100px] rounded-full animate-pulse delay-700" />
@@ -14,8 +90,10 @@ export const LandingPage = () => {
         <Flex align="center" gap={16} className="relative z-10 flex-col md:flex-row">
           <Stack gap={8} className="flex-1 text-center md:text-left">
             <Flex align="center" gap={2} className="inline-flex bg-white/5 border border-white/10 px-4 py-2 rounded-full animate-float">
-              <Box className="w-2 h-2 rounded-full bg-brand-success animate-pulse" />
-              <Text variant="xs" className="text-brand-primary">E-Voting Protocol v2.0 Live</Text>
+              <Box className={`w-2 h-2 rounded-full ${isLive ? 'bg-brand-success' : 'bg-amber-400'} animate-pulse`} />
+              <Text variant="xs" className="text-brand-primary">
+                {isLive ? 'E-Voting Protocol v2.0 Live' : 'E-Voting Protocol v2.0 • Backend Offline'}
+              </Text>
             </Flex>
             
             <Heading size="lg" as="h1">
@@ -41,44 +119,107 @@ export const LandingPage = () => {
             </Flex>
           </Stack>
           
+          {/* ═══ LIVE ELECTION ANALYTICS WIDGET ═══ */}
           <Box className="flex-1 w-full max-w-xl">
             <Box className="glass-card p-8 relative overflow-hidden group bg-white/40 border-brand-surface/20">
               <Box className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <Heading size="xs" as="h3" className="mb-8 flex items-center gap-2">
-                <Activity className="text-brand-primary" /> Live Election Analytics
-              </Heading>
               
-              <Stack gap={4} className="relative z-10">
-                {[1, 2, 3].map((item) => (
-                  <Flex key={item} align="center" justify="between" className="p-4 bg-brand-surface/10 border border-brand-surface/10 rounded-2xl hover:bg-brand-surface/20 transition-colors">
+              {/* Header */}
+              <Flex align="center" justify="between" className="mb-6 relative z-10">
+                <Heading size="xs" as="h3" className="flex items-center gap-2">
+                  <Activity className="text-brand-primary" /> Live Election Analytics
+                </Heading>
+                <Flex align="center" gap={1.5} className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  isLive ? 'bg-brand-success/10 text-brand-success' : 'bg-amber-100 text-amber-600'
+                }`}>
+                  <Box className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-brand-success animate-pulse' : 'bg-amber-400'}`} />
+                  {isLive ? 'LIVE' : 'DEMO'}
+                </Flex>
+              </Flex>
+
+              {/* Mini Stats Row */}
+              {stats && (
+                <Flex gap={3} className="mb-5 relative z-10 flex-wrap">
+                  {[
+                    { label: 'Blocks', value: formatNum(stats.totalBlocks), icon: Database },
+                    { label: 'Votes', value: formatNum(stats.totalVotesCast), icon: Users },
+                    { label: 'Nodes', value: String(stats.validatorNodes), icon: Globe },
+                  ].map((s, i) => {
+                    const Icon = s.icon;
+                    return (
+                      <Flex key={i} align="center" gap={2} className="flex-1 min-w-[90px] p-2.5 bg-brand-surface/5 rounded-xl border border-brand-surface/10">
+                        <Icon size={14} className="text-brand-primary shrink-0" />
+                        <Stack gap={0}>
+                          <Text variant="xs" className="text-[#50667a] uppercase tracking-wider font-bold leading-none" style={{ fontSize: '9px' }}>{s.label}</Text>
+                          <Text weight="black" variant="sm" className="leading-tight">{s.value}</Text>
+                        </Stack>
+                      </Flex>
+                    );
+                  })}
+                </Flex>
+              )}
+              
+              {/* Recent Blocks */}
+              <Stack gap={3} className="relative z-10">
+                {displayBlocks.map((block, idx) => (
+                  <Flex 
+                    key={block.blockNumber + '-' + idx} 
+                    align="center" 
+                    justify="between" 
+                    className="p-4 bg-brand-surface/10 border border-brand-surface/10 rounded-2xl hover:bg-brand-surface/20 transition-all duration-300 group/row"
+                  >
                     <Flex align="center" gap={4}>
-                      <Box className="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center">
-                        <Zap size={22} className="text-brand-primary" />
+                      <Box className="w-11 h-11 bg-brand-primary/10 rounded-xl flex items-center justify-center group-hover/row:scale-110 transition-transform duration-300">
+                        <Zap size={20} className="text-brand-primary" />
                       </Box>
-                      <Box>
-                        <Text weight="bold">Block #{10243 + item}</Text>
-                        <Text variant="sm" as="div">Verified & Encrypted</Text>
-                      </Box>
+                      <Stack gap={0.5}>
+                        <Flex align="center" gap={2}>
+                          <Text weight="bold" variant="sm">Block #{formatNum(block.blockNumber)}</Text>
+                          <Box as="span" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary">
+                            {block.type === 'Encrypted Vote' ? 'Vote' : 'Verify'}
+                          </Box>
+                        </Flex>
+                        <Flex align="center" gap={2}>
+                          <Text variant="xs" className="text-[#50667a] font-mono">
+                            {block.txHash.slice(0, 10)}...{block.txHash.slice(-4)}
+                          </Text>
+                          <Text variant="xs" className="text-[#50667a]">•</Text>
+                          <Flex align="center" gap={1} className="text-[#50667a]">
+                            <Clock size={10} />
+                            <Text variant="xs">{timeAgo(block.timestamp)}</Text>
+                          </Flex>
+                        </Flex>
+                      </Stack>
                     </Flex>
-                    <CheckCircle className="text-brand-success" size={20} />
+                    <CheckCircle className="text-brand-success shrink-0" size={18} />
                   </Flex>
                 ))}
               </Stack>
               
-              <Flex align="center" justify="between" className="mt-8 pt-8 border-t border-brand-surface/20">
-                <Text variant="sm">Network Status</Text>
-                <Flex align="center" gap={2} className="text-brand-success font-bold">
-                  <Box className="w-2 h-2 rounded-full bg-brand-success" />
-                  Optimal
+              {/* Footer */}
+              <Flex align="center" justify="between" className="mt-6 pt-6 border-t border-brand-surface/20 relative z-10">
+                <Flex align="center" gap={2}>
+                  <Text variant="xs" className="text-[#50667a] font-medium">Network Status</Text>
+                </Flex>
+                <Flex align="center" gap={2} className="text-brand-success font-bold text-sm">
+                  <Box className="w-2 h-2 rounded-full bg-brand-success animate-pulse" />
+                  {stats?.syncStatus || 'Optimal'}
                 </Flex>
               </Flex>
+
+              {/* Subtle link to audit */}
+              <Link to="/audit" className="block mt-4 relative z-10">
+                <Flex align="center" justify="center" gap={2} className="text-xs font-bold text-brand-primary hover:text-[#6e94b5] transition-colors uppercase tracking-wider">
+                  <TrendingUp size={12} /> View Full Audit Trail <ArrowRight size={12} />
+                </Flex>
+              </Link>
             </Box>
           </Box>
         </Flex>
       </Box>
 
       {/* Features Section */}
-      <Stack as="section" gap={16}>
+      <Stack as="section" id="features" gap={16}>
         <Stack gap={4} className="text-center">
           <Heading size="md">Architected for <Text variant="gradient">Absolute Trust</Text></Heading>
           <Text variant="lead" className="max-w-2xl mx-auto">
